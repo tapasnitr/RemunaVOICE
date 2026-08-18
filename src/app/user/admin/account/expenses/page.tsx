@@ -21,7 +21,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 /* ================= TYPES ================= */
 
@@ -90,6 +90,8 @@ function ExpensesContent() {
     Number(
       searchParams.get("month")
     ) || 0;
+
+  const deptParam = searchParams.get("dept") || null;
 
   const [loading, setLoading] =
     useState(true);
@@ -216,15 +218,31 @@ function ExpensesContent() {
 
           <div>
             <h1 className="text-2xl font-bold">
-              {MONTHS[monthParam]}{" "}
-              Expenses
+              {MONTHS[monthParam]} Expenses
+              {deptParam ? ` — ${deptParam}` : ""}
             </h1>
 
             <p className="text-sm text-gray-500">
-              Total Expense: ₹{" "}
-              {totalExpense}
+              {deptParam ? (
+                <>Department Expense: ₹ {departmentWiseExpense.find(([d]) => d === deptParam)?.[1] ?? 0}</>
+              ) : (
+                <>Total Expense: ₹ {totalExpense}</>
+              )}
             </p>
           </div>
+
+          {deptParam && (
+            <div className="ml-auto">
+              <button
+                onClick={() =>
+                  router.push(`/user/admin/account/expenses?month=${monthParam}`)
+                }
+                className="px-3 py-2 bg-white border rounded"
+              >
+                Clear Department
+              </button>
+            </div>
+          )}
         </div>
 
         {/* DEPARTMENT SUMMARY */}
@@ -240,14 +258,29 @@ function ExpensesContent() {
               ([dept, amount]) => (
                 <div
                   key={dept}
-                  className="border rounded-xl p-4 bg-red-50"
+                  className="border rounded-xl p-4 bg-red-50 flex items-center justify-between"
                 >
-                  <div className="text-sm text-gray-600">
-                    {dept}
+                  <div>
+                    <div className="text-sm text-gray-600">
+                      {dept}
+                    </div>
+
+                    <div className="text-2xl font-bold text-red-700 mt-2">
+                      ₹ {amount}
+                    </div>
                   </div>
 
-                  <div className="text-2xl font-bold text-red-700 mt-2">
-                    ₹ {amount}
+                  <div>
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/user/admin/account/expenses?month=${monthParam}&dept=${encodeURIComponent(dept)}`
+                        )
+                      }
+                      className="p-2 bg-white rounded border"
+                    >
+                      <FaArrowRight />
+                    </button>
                   </div>
                 </div>
               )
@@ -299,7 +332,7 @@ function ExpensesContent() {
               </thead>
 
               <tbody>
-                {expenses.map(
+                {(deptParam ? expenses.filter(e => e.dept === deptParam) : expenses).map(
                   (item, index) => (
                     <tr
                       key={item.id}

@@ -24,7 +24,11 @@ import Modal from "@/components/Modal";
 import {
   FaArrowRight,
   FaPlus,
+  FaDownload,
 } from "react-icons/fa";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import { useRouter } from "next/navigation";
 
@@ -193,6 +197,103 @@ export default function TransactionsPage() {
     );
   }, [transactions]);
 
+  /* ================= EXPORT PDF ================= */
+
+  const exportMonthlyPDF = () => {
+    try {
+      const doc = new jsPDF();
+
+      const monthName = MONTHS[selectedMonth];
+
+      // Totals
+      const totalIncoming = monthlyTransactions
+        .filter((t) => t.type === "Credit")
+        .reduce((s, t) => s + t.amount, 0);
+
+      const totalExpenditure = monthlyTransactions
+        .filter((t) => t.type === "Debit")
+        .reduce((s, t) => s + t.amount, 0);
+
+      const cashLeft = monthlyTransactions
+        .filter((t) => t.paymentType === "Cash")
+        .reduce((s, t) => (t.type === "Credit" ? s + t.amount : s - t.amount), 0);
+
+      const onlineLeft = monthlyTransactions
+        .filter((t) => t.paymentType === "Online")
+        .reduce((s, t) => (t.type === "Credit" ? s + t.amount : s - t.amount), 0);
+
+      // Group by department and collect transactions per dept
+      const deptMap: Record<string, { credit: number; debit: number }> = {};
+      const deptTx: Record<string, Transaction[]> = {};
+
+      monthlyTransactions.forEach((t) => {
+        const d = t.dept || "Unspecified";
+        if (!deptMap[d]) deptMap[d] = { credit: 0, debit: 0 };
+        if (!deptTx[d]) deptTx[d] = [];
+        deptTx[d].push(t);
+
+        if (t.type === "Credit") deptMap[d].credit += t.amount;
+        else deptMap[d].debit += t.amount;
+      });
+
+      // Title and overall summary
+      doc.setFontSize(14);
+      doc.text(`Monthly Transactions Report - ${monthName}`, 14, 20);
+
+      doc.setFontSize(11);
+      doc.text(`Total Incoming: Rs. ${totalIncoming}`, 14, 30);
+      doc.text(`Total Expenditure: Rs. ${totalExpenditure}`, 14, 36);
+      doc.text(`Net: Rs. ${totalIncoming - totalExpenditure}`, 14, 42);
+      doc.text(`Cash Left: Rs. ${cashLeft}`, 14, 48);
+      doc.text(`Online Left: Rs. ${onlineLeft}`, 14, 54);
+
+      // Department summary table
+      const deptRows = Object.entries(deptMap).map(([dept, v]) => [dept, `Rs. ${v.credit}`, `Rs. ${v.debit}`, `Rs. ${v.credit - v.debit}`]);
+
+      autoTable(doc, {
+        startY: 62,
+        head: [["Department", "Credit", "Debit", "Net"]],
+        body: deptRows,
+        styles: { fontSize: 10 },
+      });
+
+      // Detailed transactions per department
+      const depts = Object.keys(deptTx).sort();
+      for (const dept of depts) {
+        const finalY = (doc as any).lastAutoTable?.finalY || 0;
+        const startY = finalY + 10;
+
+        doc.setFontSize(12);
+        doc.text(`${dept} - Transactions`, 14, startY);
+
+        const txBody = deptTx[dept]
+          .sort((a, b) => (a.date < b.date ? -1 : 1))
+          .map((t) => [
+            t.date,
+            t.devoteeName || "-",
+            t.type,
+            t.paymentType,
+            `Rs. ${t.amount}`,
+            t.purpose || "-",
+            t.remarks || "-",
+          ]);
+
+        autoTable(doc, {
+          startY: startY + 6,
+          head: [["Date", "Name", "Type", "Payment", "Amount", "Purpose", "Remarks"]],
+          body: txBody,
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [230, 230, 230] },
+          margin: { left: 14, right: 14 },
+        });
+      }
+
+      doc.save(`transactions-report-${monthName}.pdf`);
+    } catch (error) {
+      console.error("PDF export failed:", error);
+    }
+  };
+
   /* ================= ONLINE BALANCE ================= */
 
   const onlineBalance = useMemo(() => {
@@ -267,6 +368,15 @@ export default function TransactionsPage() {
                 )
               )}
             </select>
+
+            {/* DOWNLOAD REPORT */}
+            <button
+              onClick={() => exportMonthlyPDF()}
+              className="bg-red-600 text-white px-3 py-2 rounded-lg flex items-center gap-2"
+            >
+              <FaDownload />
+              Download Report
+            </button>
 
             {/* ADD */}
 
@@ -433,7 +543,7 @@ function Card({
       </div>
 
       <div className="text-2xl font-bold mt-2">
-        ₹ {amount}
+        Rs. {amount}
       </div>
     </div>
   );

@@ -75,9 +75,9 @@ export default function WeeklySadhanaReport() {
 
   const eligibleDevotees = devotees.filter((d) => d.features?.sadhana);
 
-  const FULL_SOUL_MAX = 35;
-  const FULL_BODY_MAX = 35;
-  const FULL_WEEK_TOTAL = 70;
+  const FULL_SOUL_MAX = 770;
+  const FULL_BODY_MAX = 630;
+  const FULL_WEEK_TOTAL = 1400;
 
   return (
     <div className="p-4 space-y-4">
@@ -154,15 +154,17 @@ export default function WeeklySadhanaReport() {
                 );
 
                 const score = calculateWeeklyScore(userRecords);
+                const soul = score.soul;
+                const body = score.body;
 
-                const soulMarks =
-                  score.japaMarks +
-                  score.hearingMarks +
-                  score.readingMarks +
-                  score.slokaMarks;
+                const chantingMarks = soul.chantingMarks; // max 210
+                const readingHearingMarks = soul.readingHearingMarks; // max 210
+                const slokaMarks = soul.slokaMarks; // max 35
+                const sadhanaMarks = soul.sadhanaWeeklyMarks; // max 35
+                const classMarks = soul.bookReadingWeeklyMarks; // max 70
 
-                const bodyMarks =
-                  score.disciplineMarks + score.studyMarks;
+                const soulMarks = soul.total;
+                const bodyMarks = body.total;
 
                 const soulPct = percent(soulMarks, FULL_SOUL_MAX);
                 const bodyPct = percent(bodyMarks, FULL_BODY_MAX);
@@ -177,27 +179,24 @@ export default function WeeklySadhanaReport() {
                     </td>
 
                     <td className="border p-2 text-center">
-                      {score.japaMarks}/14
+                      {chantingMarks} / 210
                     </td>
 
                     <td className="border p-2 text-center">
-                      {score.hearingMarks}/7 ({score.hearingMin}m)
+                      {readingHearingMarks} / 210
                     </td>
 
                     <td className="border p-2 text-center">
-                      {score.readingMarks}/7 ({score.readingMin}m)
+                      {sadhanaMarks} / 35
                     </td>
 
                     <td className="border p-2 text-center">
-                      {score.slokaMarks}/7 ({score.slokaCount})
+                      {slokaMarks} / 35
                     </td>
 
                     {/* CLASS MOVED TO SOUL */}
                     <td className="border p-2 text-center">
-                      {userRecords.reduce(
-                        (s, r) => s + (r.bookReadingClass ? 1 : 0),
-                        0
-                      )}
+                      {Math.min(Math.round(classMarks / 10), 7)} days ({classMarks} pts)
                     </td>
 
                     <td className={`border p-2 text-center font-bold ${colorByPercent(soulPct)}`}>
@@ -217,7 +216,7 @@ export default function WeeklySadhanaReport() {
                     </td>
 
                     <td className="border p-2 text-center">
-                      {score.studyMarks}/7 ({score.studyMin}m)
+                      {Math.round((userRecords.reduce((s, r) => s + (r.studyOrPreachingMin || 0), 0) || 0))}m
                     </td>
 
                     <td className={`border p-2 text-center font-bold ${colorByPercent(bodyPct)}`}>
@@ -240,7 +239,7 @@ export default function WeeklySadhanaReport() {
                     </td>
 
                     <td className={`border p-2 text-center font-bold ${colorByPercent(totalPct)}`}>
-                      {obtained}/70 ({totalPct}%)
+                      {obtained} / {FULL_WEEK_TOTAL} ({totalPct}%)
                     </td>
                   </tr>
                 );

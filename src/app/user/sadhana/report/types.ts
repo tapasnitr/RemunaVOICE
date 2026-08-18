@@ -11,6 +11,8 @@ export interface SadhanaDaily {
   personalHearingMin: number;
   spBookReadingMin: number;
   slokaLearntCount: number;
+  chantingTime?: string; // optional ISO time or HH:MM
+  sadhanaFirstFillTime?: string; // optional ISO timestamp of first fill
 
   /* BODY */
   bookReadingClass: YesNo;

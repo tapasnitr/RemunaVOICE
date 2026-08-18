@@ -6,30 +6,7 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import BackPageName from "@/components/BackHeaderButton";
 import { Info } from "lucide-react";
-
-/* ================= TYPES ================= */
-
-type YesNo = 0 | 1;
-type JapaTime = 0 | 1 | 2;
-
-interface SadhanaDaily {
-  userId: string;
-  date: string;
-
-  // SOUL
-  japaTime: JapaTime;
-  bookReadingClass: YesNo;
-
-  personalHearingMin: number;
-  spBookReadingMin: number;
-  slokaLearntCount: number;
-
-  // BODY
-  dayRestBelow30: YesNo;
-  sleptBeforeTime: YesNo;
-  wakeUpBeforeTime: YesNo;
-  studyOrPreachingMin: number; // ✅ CHANGED
-}
+import { SadhanaDaily, YesNo, JapaTime } from "../report/types";
 
 /* ================= DEFAULT ================= */
 
@@ -43,6 +20,8 @@ const defaultForm: SadhanaDaily = {
   personalHearingMin: 0,
   spBookReadingMin: 0,
   slokaLearntCount: 0,
+  chantingTime: "",
+  sadhanaFirstFillTime: "",
 
   dayRestBelow30: 0,
   sleptBeforeTime: 0,
@@ -199,17 +178,30 @@ export default function SadhanaFillPage() {
     setSaving(true);
     setMessage("");
 
-    await setDoc(
-      doc(db, "sadhana_entries", docId),
-      {
-        ...form,
-        userId: user.uid,
-        date,
-        updatedAt: serverTimestamp(),
-        createdAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+    try {
+      const ref = doc(db, "sadhana_entries", docId);
+      const snap = await getDoc(ref);
+
+      // Preserve existing sadhanaFirstFillTime if present, otherwise set now
+      const existing = snap.exists() ? (snap.data() as any) : null;
+      const firstFill = existing?.sadhanaFirstFillTime || form.sadhanaFirstFillTime || new Date().toISOString();
+
+      await setDoc(
+        ref,
+        {
+          ...form,
+          userId: user.uid,
+          date,
+          sadhanaFirstFillTime: firstFill,
+          updatedAt: serverTimestamp(),
+          createdAt: existing?.createdAt || serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.error("Save failed:", err);
+      setMessage("❌ Save failed");
+    }
 
     setSaving(false);
     setMessage("✅ Sadhana saved");
@@ -304,6 +296,15 @@ export default function SadhanaFillPage() {
               update("slokaLearntCount", Number(e.target.value))
             }
             className="w-20 border rounded px-2 py-1 text-sm"
+          />
+        </Row>
+
+        <Row label="Chanting time (optional)">
+          <input
+            type="time"
+            value={form.chantingTime || ""}
+            onChange={(e) => update("chantingTime", e.target.value)}
+            className="w-32 border rounded px-2 py-1 text-sm"
           />
         </Row>
 
