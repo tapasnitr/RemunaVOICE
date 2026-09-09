@@ -6,49 +6,37 @@ import { SadhanaDaily } from "./types";
   Soul totals (weekly): ~770
   Body totals (weekly): ~630
 
-  The calculator uses optional fields when present (chantingTime, sadhanaFirstFillTime),
-  and falls back to `japaTime` when exact times aren't available.
+  Submission credit is based on the preserved first submission timestamp.
 */
 
-function parseHour(time?: string): number | null {
-  if (!time) return null;
-  // try ISO datetime or HH:MM
-  const t = time.trim();
-  const isoMatch = t.match(/T(\d{2}):(\d{2})/);
-  if (isoMatch) return Number(isoMatch[1]);
-  const hhmm = t.match(/^(\d{1,2}):(\d{2})/);
-  if (hhmm) return Number(hhmm[1]);
-  return null;
+function submittedBeforeNextDayNineAM(date: string, firstFillTime?: string) {
+  if (!firstFillTime || !date) return false;
+  const submittedAt = new Date(firstFillTime);
+  const deadline = new Date(`${date}T09:00:00`);
+  deadline.setDate(deadline.getDate() + 1);
+  return !Number.isNaN(submittedAt.getTime()) && submittedAt < deadline;
 }
 
 export function calculateWeeklyScore(records: SadhanaDaily[]) {
   // SOUL
   let chantingMarks = 0; // sum of daily chanting marks (30/15/0/-5)
-  let readingHearingMin = 0; // sum of personalHearingMin + spBookReadingMin
+  let personalHearingMin = 0;
+  let spBookReadingMin = 0;
   let sadhanaFillMarks = 0; // 5 marks per day when filled on time
   let bookReadingMarks = 0; // 10 marks per day when attended
   let slokaCount = 0;
 
   for (const r of records) {
-    // chanting: prefer `chantingTime` (HH:MM or ISO), fallback to `japaTime`
-    const hr = parseHour(r.chantingTime || undefined);
-    if (hr !== null) {
-      if (hr < 9) chantingMarks += 30;
-      else if (hr < 17) chantingMarks += 15;
-      else if (hr < 21) chantingMarks += 0;
-      else chantingMarks += -5;
-    } else {
-      // fallback mapping from japaTime
-      if (r.japaTime === 2) chantingMarks += 30;
-      else if (r.japaTime === 1) chantingMarks += 15;
-      else chantingMarks += 0;
+    if (r.japaTime === 3) chantingMarks += 30;
+    else if (r.japaTime === 2) chantingMarks += 15;
+    else if (r.japaTime === 0) chantingMarks -= 5;
+
+    personalHearingMin += r.personalHearingMin || 0;
+    spBookReadingMin += r.spBookReadingMin || 0;
+
+    if (submittedBeforeNextDayNineAM(r.date, r.sadhanaFirstFillTime)) {
+      sadhanaFillMarks += 5;
     }
-
-    readingHearingMin += (r.personalHearingMin || 0) + (r.spBookReadingMin || 0);
-
-    // sadhana fill: if sadhanaFirstFillTime exists treat as filled on time for now
-    // (ideally compare timestamp to next day 09:00; fallback: presence => 5)
-    if (r.sadhanaFirstFillTime) sadhanaFillMarks += 5;
 
     // book reading attendance
     if ((r as any).bookReadingClass) bookReadingMarks += 10;
@@ -56,14 +44,16 @@ export function calculateWeeklyScore(records: SadhanaDaily[]) {
     slokaCount += r.slokaLearntCount || 0;
   }
 
-  const readingHearingMarks = Math.min(readingHearingMin, 210);
+  const personalHearingMarks = Math.min(personalHearingMin, 210);
+  const spBookReadingMarks = Math.min(spBookReadingMin, 210);
   const sadhanaWeeklyMarks = Math.min(sadhanaFillMarks, 35);
   const bookReadingWeeklyMarks = Math.min(bookReadingMarks, 70);
   const slokaMarks = Math.min(slokaCount * 5, 35);
 
   const soulTotal =
     chantingMarks +
-    readingHearingMarks +
+    personalHearingMarks +
+    spBookReadingMarks +
     sadhanaWeeklyMarks +
     bookReadingWeeklyMarks +
     slokaMarks;
@@ -86,8 +76,10 @@ export function calculateWeeklyScore(records: SadhanaDaily[]) {
   return {
     soul: {
       chantingMarks,
-      readingHearingMin,
-      readingHearingMarks,
+      personalHearingMin,
+      personalHearingMarks,
+      spBookReadingMin,
+      spBookReadingMarks,
       sadhanaWeeklyMarks,
       bookReadingWeeklyMarks,
       slokaCount,

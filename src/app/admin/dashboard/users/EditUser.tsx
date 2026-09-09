@@ -22,7 +22,9 @@ const ALL_ADMIN_FEATURES = [
   "sevaAlot",
   "morningProgramAlot",
   "kitchen",
-  "account"
+  "account",
+  "customSadhana",
+  "batchAllotment",
 ];
 
 export default function EditUser({ user, batches, onClose, onSuccess }: any) {

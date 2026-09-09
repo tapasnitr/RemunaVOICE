@@ -1,5 +1,6 @@
 export type YesNo = 0 | 1;
-export type JapaTime = 0 | 1 | 2;
+// Chanting completion bands: after 9pm, 5–9pm, 9am–5pm, before 9am.
+export type JapaTime = 0 | 1 | 2 | 3;
 
 export interface SadhanaDaily {
   userId: string;
@@ -19,7 +20,8 @@ export interface SadhanaDaily {
   dayRestBelow30: YesNo;
   sleptBeforeTime: YesNo;
   wakeUpBeforeTime: YesNo;
-  studyOrPreachingMin: number; // ✅ CHANGED
+  // Kept optional for compatibility with older entries; it no longer carries marks.
+  studyOrPreachingMin?: number;
 }
 
 export interface Devotee {

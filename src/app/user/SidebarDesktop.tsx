@@ -247,6 +247,26 @@ export default function SidebarDesktop({
                   nested
                 />
               )}
+
+              {adminFeatures.includes("customSadhana") && (
+                <SidebarItem
+                  href="/user/admin/custom-sadhana"
+                  active={isActive("/user/admin/custom-sadhana")}
+                  label="Custom Sadhana"
+                  icon="📝"
+                  nested
+                />
+              )}
+
+              {adminFeatures.includes("batchAllotment") && (
+                <SidebarItem
+                  href="/user/admin/batch-allotment"
+                  active={isActive("/user/admin/batch-allotment")}
+                  label="Batch Allotment"
+                  icon="👥"
+                  nested
+                />
+              )}
             </div>
           )}
         </nav>

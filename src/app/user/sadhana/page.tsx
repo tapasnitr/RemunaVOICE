@@ -7,6 +7,7 @@ import {
   FaBookOpen,
   FaBookReader,
   FaVideo,
+  FaClipboardList,
 } from "react-icons/fa";
 import BackPageName from "@/components/BackHeaderButton";
 
@@ -37,9 +38,10 @@ export default function SadhanaHomePage() {
           <Card
             icon={<FaPenFancy />}
             label="Fill Sadhana"
-            desc="Daily entry"
-            onClick={() => router.push("/user/sadhana/fill")}
+            desc="Custom daily cards"
+            onClick={() => router.push("/user/sadhana/custom")}
           />
+
 
           <Card
             icon={<FaChartBar />}
@@ -61,6 +63,7 @@ export default function SadhanaHomePage() {
             desc="Reading status"
             onClick={() => router.push("/user/sadhana/book-report")}
           />
+
         </div>
 
         {/* JOIN BOOK READING — PRIMARY CTA */}

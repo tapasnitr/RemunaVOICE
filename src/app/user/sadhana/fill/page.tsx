@@ -70,20 +70,28 @@ function JapaToggle({
   return (
     <div className="flex gap-2 flex-wrap">
       <button
-        onClick={() => onChange(2)}
+        onClick={() => onChange(3)}
         className={`px-3 py-1 rounded text-sm font-semibold ${
-          value === 2 ? "bg-green-600 text-white" : "bg-gray-200"
+          value === 3 ? "bg-green-600 text-white" : "bg-gray-200"
         }`}
       >
-        Before 10 AM
+        Before 9 AM
+      </button>
+      <button
+        onClick={() => onChange(2)}
+        className={`px-3 py-1 rounded text-sm font-semibold ${
+          value === 2 ? "bg-yellow-600 text-white" : "bg-gray-200"
+        }`}
+      >
+        Before 5 PM
       </button>
       <button
         onClick={() => onChange(1)}
         className={`px-3 py-1 rounded text-sm font-semibold ${
-          value === 1 ? "bg-yellow-600 text-white" : "bg-gray-200"
+          value === 1 ? "bg-orange-500 text-white" : "bg-gray-200"
         }`}
       >
-        Before 1 PM
+        Before 9 PM
       </button>
       <button
         onClick={() => onChange(0)}
@@ -91,7 +99,7 @@ function JapaToggle({
           value === 0 ? "bg-red-600 text-white" : "bg-gray-200"
         }`}
       >
-        No
+        After 9 PM
       </button>
     </div>
   );
@@ -226,6 +234,7 @@ export default function SadhanaFillPage() {
         <input
           type="date"
           value={date}
+          max={new Date().toISOString().split("T")[0]}
           onChange={(e) => setDate(e.target.value)}
           className="w-full border rounded px-3 py-2 mb-4"
         />
@@ -233,7 +242,7 @@ export default function SadhanaFillPage() {
         {/* SOUL */}
         <h2 className="text-lg font-semibold text-yellow-800 mb-2">🟡 Soul</h2>
 
-        <Row label="Japa completed">
+        <Row label="Chanting completion time">
           <JapaToggle
             value={form.japaTime}
             onChange={(v) => update("japaTime", v)}
@@ -245,14 +254,8 @@ export default function SadhanaFillPage() {
             <div className="flex items-center gap-2">
               Personal hearing (minutes – daily)
               <RuleInfo>
-                <p>Weekly total ≥ 420 → 7 marks</p>
-                <p>360–419 → 6</p>
-                <p>300–359 → 5</p>
-                <p>240–299 → 4</p>
-                <p>180–239 → 3</p>
-                <p>120–179 → 2</p>
-                <p>60–119 → 1</p>
-                <p>&lt; 60 → 0</p>
+                <p>Minutes are added weekly for hearing.</p>
+                <p>1 minute = 1 mark, up to 210 marks.</p>
               </RuleInfo>
             </div>
           }
@@ -268,7 +271,7 @@ export default function SadhanaFillPage() {
           />
         </Row>
 
-        <Row label="Read SP book (minutes – daily)">
+        <Row label="SP book reading (minutes – daily, scored separately)">
           <input
             type="number"
             min={0}
@@ -299,14 +302,9 @@ export default function SadhanaFillPage() {
           />
         </Row>
 
-        <Row label="Chanting time (optional)">
-          <input
-            type="time"
-            value={form.chantingTime || ""}
-            onChange={(e) => update("chantingTime", e.target.value)}
-            className="w-32 border rounded px-2 py-1 text-sm"
-          />
-        </Row>
+        <p className="text-xs text-gray-500 mt-3">
+          Sadhana-card submission credit is recorded automatically: 5 marks when first submitted before 9:00 AM the following day.
+        </p>
 
         {/* BODY */}
         <h2 className="text-lg font-semibold text-green-800 mt-6 mb-2">
@@ -320,51 +318,17 @@ export default function SadhanaFillPage() {
           />
         </Row>
 
-        <Row label="Slept before time
-(Working < 10:00 PM
-Student < 9:45 PM)">
+        <Row label="Slept before 9:30 PM">
           <YesNoToggle
             value={form.sleptBeforeTime}
             onChange={(v) => update("sleptBeforeTime", v)}
           />
         </Row>
 
-        <Row label="Wake up before time
-(Working < 4:00 AM
-Student < 3:45 AM)">
+        <Row label="Wake up before 4:00 AM">
           <YesNoToggle
             value={form.wakeUpBeforeTime}
             onChange={(v) => update("wakeUpBeforeTime", v)}
-          />
-        </Row>
-
-        {/* ✅ UPDATED FIELD */}
-        <Row
-          label={
-            <div className="flex items-center gap-2">
-             Students :Study /
-Working : Preaching (minutes – daily)
-              <RuleInfo>
-                <p>Weekly total ≥ 420 → 7 marks</p>
-                <p>360–419 → 6</p>
-                <p>300–359 → 5</p>
-                <p>240–299 → 4</p>
-                <p>180–239 → 3</p>
-                <p>120–179 → 2</p>
-                <p>60–119 → 1</p>
-                <p>&lt; 60 → 0</p>
-              </RuleInfo>
-            </div>
-          }
-        >
-          <input
-            type="number"
-            min={0}
-            value={form.studyOrPreachingMin}
-            onChange={(e) =>
-              update("studyOrPreachingMin", Number(e.target.value))
-            }
-            className="w-24 border rounded px-2 py-1 text-sm"
           />
         </Row>
 
@@ -373,7 +337,7 @@ Working : Preaching (minutes – daily)
           disabled={saving}
           className="w-full mt-6 py-2 rounded text-white bg-yellow-700"
         >
-          {saving ? "Saving…" : "Save Sadhana"}
+          {saving ? "Saving…" : "Submit Sadhana Card"}
         </button>
 
         {message && (

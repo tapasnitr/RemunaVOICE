@@ -13,6 +13,7 @@ import {
   GiSunrise,
   GiCookingPot,
 } from "react-icons/gi";
+import { FaClipboardCheck } from "react-icons/fa";
 
 import { useAuth } from "@/context/AuthContext";
 
@@ -151,6 +152,38 @@ export default function UserAdminPage() {
               <span className="text-xs text-gray-500 text-center mt-1">
                 Donations & expenses
               </span>
+            </button>
+          )}
+
+          {adminFeatures.includes("customSadhana") && (
+            <>
+              <button
+                onClick={() => router.push("/user/admin/custom-sadhana")}
+                className="bg-white border border-yellow-300 rounded-xl p-4 shadow flex flex-col items-center justify-center hover:shadow-md transition"
+              >
+                <FaClipboardCheck className="text-3xl text-yellow-700 mb-2" />
+                <span className="font-semibold text-sm text-center">Custom Sadhana</span>
+                <span className="text-xs text-gray-500 text-center mt-1">Build and assign cards</span>
+              </button>
+              <button
+                onClick={() => router.push("/user/admin/custom-sadhana/report")}
+                className="bg-white border border-green-300 rounded-xl p-4 shadow flex flex-col items-center justify-center hover:shadow-md transition"
+              >
+                <span className="text-3xl text-green-700 mb-2">📈</span>
+                <span className="font-semibold text-sm text-center">Sadhana Report</span>
+                <span className="text-xs text-gray-500 text-center mt-1">Batch-wise weekly progress</span>
+              </button>
+            </>
+          )}
+
+          {adminFeatures.includes("batchAllotment") && (
+            <button
+              onClick={() => router.push("/user/admin/batch-allotment")}
+              className="bg-white border border-indigo-300 rounded-xl p-4 shadow flex flex-col items-center justify-center hover:shadow-md transition"
+            >
+              <span className="text-3xl text-indigo-700 mb-2">👥</span>
+              <span className="font-semibold text-sm text-center">Batch Allotment</span>
+              <span className="text-xs text-gray-500 text-center mt-1">Group devotees</span>
             </button>
           )}
         </div>

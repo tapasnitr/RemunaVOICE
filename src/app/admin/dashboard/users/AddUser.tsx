@@ -24,6 +24,9 @@ const ALL_ADMIN_FEATURES = [
   "sevaAlot",
   "morningProgramAlot",
   "kitchen",
+  "account",
+  "customSadhana",
+  "batchAllotment",
 ];
 
 /* ================= COMPONENT ================= */

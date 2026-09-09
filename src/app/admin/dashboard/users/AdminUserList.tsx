@@ -7,7 +7,9 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import AddUser from "./AddUser";
 import EditUser from "./EditUser";
 
@@ -73,6 +75,19 @@ export default function AdminUserList() {
     setUsers((prev) => prev.filter((x) => x.uid !== u.uid));
   };
 
+  const sendResetEmail = async (user: Devotee) => {
+    if (!user.email) return;
+    if (!confirm(`Send a password reset email to ${user.email}?`)) return;
+
+    try {
+      await sendPasswordResetEmail(auth, user.email.trim().toLowerCase());
+      alert("Password reset email sent.");
+    } catch (error: any) {
+      console.error("Password reset email failed", error);
+      alert(error?.message || "Could not send password reset email.");
+    }
+  };
+
   if (loading) return <div className="p-10">Loading...</div>;
 
   return (
@@ -122,6 +137,13 @@ export default function AdminUserList() {
                     className="bg-blue-100 px-2 py-1 rounded"
                   >
                     Edit
+                  </button>
+
+                  <button
+                    onClick={() => void sendResetEmail(u)}
+                    className="bg-indigo-100 px-2 py-1 rounded text-indigo-700"
+                  >
+                    Reset Password
                   </button>
 
                   <button

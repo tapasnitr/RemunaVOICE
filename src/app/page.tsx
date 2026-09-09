@@ -65,7 +65,7 @@ export default function LoginPage() {
     setMessage("");
 
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(auth, resetEmail.trim().toLowerCase());
       setMessage(
         "✅ Password reset link sent. Please check your email inbox."
       );
@@ -73,7 +73,14 @@ export default function LoginPage() {
       setResetEmail("");
     } catch (err) {
       const error = err as FirebaseError;
-      setMessage("❌ " + (error.message || "Failed to send reset email"));
+      const errorMessage = error.code === "auth/user-not-found"
+        ? "No account was found for this email."
+        : error.code === "auth/invalid-email"
+          ? "Enter a valid email address."
+          : error.code === "auth/too-many-requests"
+            ? "Too many attempts. Please wait and try again."
+            : error.message || "Failed to send reset email";
+      setMessage("❌ " + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -125,16 +132,17 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Login"}
             </button>
 
-            {/* <button
+            <button
               type="button"
               onClick={() => {
+                setMessage("");
+                setResetEmail(form.email.trim());
                 setShowForgot(true);
-                setResetEmail(form.email);
               }}
               className="w-full text-sm text-yellow-700 font-semibold hover:underline"
             >
               Forgot Password?
-            </button> */}
+            </button>
           </form>
         ) : (
           <div className="space-y-4">
